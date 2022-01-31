@@ -53,6 +53,9 @@ async function sendPasswd(type, context) {
             passwd: bytesToBase64(cipher)
         })
     })
+        .then(response => response.text())
+        .then(response => console.log(response))
+        .catch(error => console.log(error))
 }
 
 

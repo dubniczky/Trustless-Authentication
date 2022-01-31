@@ -36,7 +36,7 @@ app.post('/api/user/signup/context', async (req, res) => {
 
     console.log(`Creating context for ${uname}`)
 
-    const { publicKey, privateKey } = cryptoUtils.genRSAKeys(RSA_SIZE, PUB_EXP)
+    const { publicKey, privateKey } = await cryptoUtils.genRSAKeys(RSA_SIZE, PUB_EXP)
 
     const pubSalt = cryptoUtils.getBase64Salt(SALT_SIZE)
     const privSalt = cryptoUtils.getBase64Salt(SALT_SIZE)
@@ -52,7 +52,7 @@ app.post('/api/user/signup/context', async (req, res) => {
     }
 
     res.send({
-        pubKey: cryptoUtils.RSAKeyToBase64(publicKey),
+        pubKey: await cryptoUtils.RSAKeyToBase64(publicKey),
         pubSalt: pubSalt
     })
 })
@@ -66,7 +66,7 @@ app.post('/api/user/signup/submit', async (req, res) => {
 
     const uname = req.body.uname
     const passwd = req.body.passwd
-    if (users[uname]) {
+    if (users[uname].hash) {
         res.status(400).send(`User ${uname} has already registered`)
         return
     }
@@ -77,9 +77,15 @@ app.post('/api/user/signup/submit', async (req, res) => {
 
     console.log(`Registering ${uname}`)
 
-    const decrypted = cryptoUtils.decryptRSA(sessions[uname].privKey, base64ToBuffer(passwd))
+    const decrypted = await cryptoUtils.decryptRSA(
+        sessions[uname].privKey,
+        cryptoUtils.base64ToBuffer(passwd)
+    )
 
-    users[uname].hash = cryptoUtils.hashAndSaltBase64(decrypted, base64ToBuffer(users[uname].privSalt))
+    users[uname].hash = cryptoUtils.hashAndSaltBase64(
+        decrypted,
+        cryptoUtils.base64ToBuffer(users[uname].privSalt)
+    )
 
     console.log(`User ${uname} is registered with ${JSON.stringify(users[uname])}`)
 

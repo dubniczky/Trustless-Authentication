@@ -15,7 +15,7 @@ module.exports = {
     },
 
     RSAKeyToBase64: async (rsaKey) => {
-        return Buffer.from(await subtle.exportKey('spki', publicKey)).toString('base64')
+        return Buffer.from(await subtle.exportKey('spki', rsaKey)).toString('base64')
     },
 
     decryptRSA: async (privKey, data) => {
